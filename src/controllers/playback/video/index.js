@@ -158,8 +158,8 @@ export default function (view) {
             const maxWidth = window.screen.width * window.devicePixelRatio * 0.2;
             for (const [, info] of Object.entries(trickplayResolutions)) {
                 if (!bestWidth
-                        || (info.Width < bestWidth && bestWidth > maxWidth) // Objects not guaranteed to be sorted in any order, first width might be > maxWidth.
-                        || (info.Width > bestWidth && info.Width <= maxWidth)) {
+                    || (info.Width < bestWidth && bestWidth > maxWidth) // Objects not guaranteed to be sorted in any order, first width might be > maxWidth.
+                    || (info.Width > bestWidth && info.Width <= maxWidth)) {
                     bestWidth = info.Width;
                 }
             }
@@ -520,7 +520,34 @@ export default function (view) {
             updatePlaylist();
             enableStopOnBack(true);
             updatePlaybackRate(player);
+            getIntroTimestamps(state.NowPlayingItem);
         }
+    }
+
+    function getIntroTimestamps(item) {
+        const apiClient = ServerConnections.getApiClient(item);
+        const address = apiClient.serverAddress();
+
+        const url = `${address}/Episode/${item.Id}/IntroTimestamps`;
+        const reqInit = {
+            headers: {
+                "Authorization": `MediaBrowser Token=${apiClient.accessToken()}`
+            }
+        };
+
+        fetch(url, reqInit).then(r => {
+            if (!r.ok) {
+                return;
+            }
+
+            return r.json();
+        }).then(intro => {
+            tvIntro = intro;
+        });
+    }
+
+    function skipIntro() {
+        playbackManager.seekMs(tvIntro.IntroEnd * 1000);
     }
 
     function onPlayPauseStateChanged() {
@@ -640,6 +667,22 @@ export default function (view) {
                 const item = currentItem;
                 refreshProgramInfoIfNeeded(player, item);
                 showComingUpNextIfNeeded(player, item, currentTime, currentRuntimeTicks);
+
+                // Check if an introduction sequence was detected for this item.
+                if (!tvIntro?.Valid) {
+                    return;
+                }
+
+                const seconds = playbackManager.currentTime(player) / 1000;
+                const skipIntro = document.querySelector(".skipIntro");
+
+                // If the skip prompt should be shown, show it.
+                if (seconds >= tvIntro.ShowSkipPromptAt && seconds < tvIntro.HideSkipPromptAt) {
+                    skipIntro.classList.remove("hide");
+                    return;
+                }
+
+                skipIntro.classList.add("hide");
             }
         }
     }
@@ -943,7 +986,7 @@ export default function (view) {
 
                 // show subtitle offset feature only if player and media support it
                 const showSubOffset = playbackManager.supportSubtitleOffset(player)
-                        && playbackManager.canHandleOffsetOnCurrentSubtitle(player);
+                    && playbackManager.canHandleOffsetOnCurrentSubtitle(player);
 
                 playerSettingsMenu.show({
                     mediaType: 'Video',
@@ -1117,10 +1160,10 @@ export default function (view) {
             * - primary subtitle has support
             */
         const currentTrackCanAddSecondarySubtitle = playbackManager.playerHasSecondarySubtitleSupport(player)
-                && streams.length > 1
-                && secondaryStreams.length > 0
-                && currentIndex !== -1
-                && playbackManager.trackHasSecondarySubtitleSupport(playbackManager.getSubtitleStream(player, currentIndex), player);
+            && streams.length > 1
+            && secondaryStreams.length > 0
+            && currentIndex !== -1
+            && playbackManager.trackHasSecondarySubtitleSupport(playbackManager.getSubtitleStream(player, currentIndex), player);
 
         if (currentTrackCanAddSecondarySubtitle) {
             const secondarySubtitleMenuItem = {
@@ -1551,6 +1594,7 @@ export default function (view) {
     let programEndDateMs = 0;
     let playbackStartTimeTicks = 0;
     let subtitleSyncOverlay;
+    let tvIntro;
     let trickplayResolution = null;
     const nowPlayingVolumeSlider = view.querySelector('.osdVolumeSlider');
     const nowPlayingVolumeSliderContainer = view.querySelector('.osdVolumeSliderContainer');
@@ -1707,6 +1751,10 @@ export default function (view) {
     let lastPointerDown = 0;
     /* eslint-disable-next-line compat/compat */
     dom.addEventListener(view, window.PointerEvent ? 'pointerdown' : 'click', function (e) {
+        // If the user clicked the skip intro button, don't pause the video. Fixes ConfusedPolarBear/intro-skipper#44.
+        if (dom.parentWithClass(e.target, ['btnSkipIntro'])) {
+            return;
+        }
         if (dom.parentWithClass(e.target, ['videoOsdBottom', 'upNextContainer'])) {
             showOsd();
             return;
@@ -1730,7 +1778,7 @@ export default function (view) {
                         clearTimeout(playPauseClickTimeout);
                         playPauseClickTimeout = 0;
                     } else {
-                        playPauseClickTimeout = setTimeout(function() {
+                        playPauseClickTimeout = setTimeout(function () {
                             playbackManager.playPause(currentPlayer);
                             showOsd();
                             playPauseClickTimeout = 0;
@@ -1778,7 +1826,7 @@ export default function (view) {
         }
     });
 
-    nowPlayingPositionSlider.updateBubbleHtml = function(bubble, value) {
+    nowPlayingPositionSlider.updateBubbleHtml = function (bubble, value) {
         showOsd();
 
         const item = currentItem;
@@ -1873,6 +1921,7 @@ export default function (view) {
     });
     view.querySelector('.btnAudio').addEventListener('click', showAudioTrackSelection);
     view.querySelector('.btnSubtitles').addEventListener('click', showSubtitleTrackSelection);
+    view.querySelector('.btnSkipIntro').addEventListener('click', skipIntro);
 
     // HACK: Remove `emby-button` from the rating button to make it look like the other buttons
     view.querySelector('.btnUserRating').classList.remove('emby-button');

@@ -1459,7 +1459,7 @@ export default function (options) {
     // External vtt or burn in
     profile.SubtitleProfiles = [];
     const subtitleBurninSetting = appSettings.get('subtitleburnin');
-    const subtitleRenderPgsSetting = appSettings.get('subtitlerenderpgs') === 'true';
+    const subtitleRenderPgsSetting = true;
     if (subtitleBurninSetting !== 'all') {
         if (supportsTextTracks()) {
             profile.SubtitleProfiles.push({

@@ -725,7 +725,7 @@ function setDefaultTitle () {
         pageTitleElement.innerHTML = '';
     }
 
-    document.title = 'Jellyfin';
+    document.title = 'Kakouflix';
 }
 
 function setTitle (title) {
@@ -751,7 +751,7 @@ function setTitle (title) {
         pageTitleElement.innerText = html || '';
     }
 
-    document.title = title || 'Jellyfin';
+    document.title = title || 'Kakouflix';
 }
 
 function setTransparentMenu (transparent) {

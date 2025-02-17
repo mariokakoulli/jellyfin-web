@@ -435,7 +435,7 @@ export class UserSettings {
             return this.set('screensaver', val, false);
         }
 
-        return this.get('screensaver', false);
+        return this.get('screensaver', true);
     }
 
     /**
@@ -448,7 +448,7 @@ export class UserSettings {
             return this.set('backdropScreensaverInterval', val.toString(), false);
         }
 
-        return parseInt(this.get('backdropScreensaverInterval', false), 10) || 5;
+        return parseInt(this.get('backdropScreensaverInterval', false), 10) || 10;
     }
 
     /**

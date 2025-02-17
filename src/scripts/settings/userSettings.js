@@ -432,10 +432,10 @@ export class UserSettings {
      */
     screensaver(val) {
         if (val !== undefined) {
-            return this.set('screensaver', val, true);
+            return this.set('screensaver', 'backdropscreensaver', false);
         }
-
-        return this.get('screensaver', true);
+        return this.set('screensaver', 'backdropscreensaver', false);
+        // return this.get('screensaver', true);
     }
 
     /**

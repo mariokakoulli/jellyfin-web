@@ -432,10 +432,10 @@ export class UserSettings {
      */
     screensaver(val) {
         if (val !== undefined) {
-            return this.set('screensaver', 'backdropscreensaver', false);
+            return this.set('screensaver', val, false);
         }
-        return this.set('screensaver', 'backdropscreensaver', false);
-        // return this.get('screensaver', true);
+        this.set('screensaver', 'backdropscreensaver', false);
+        return this.get('screensaver', false);
     }
 
     /**
@@ -447,7 +447,7 @@ export class UserSettings {
         if (val !== undefined) {
             return this.set('backdropScreensaverInterval', val.toString(), false);
         }
-
+        this.set('backdropScreensaverInterval', '10', false);
         return parseInt(this.get('backdropScreensaverInterval', false), 10) || 10;
     }
 

@@ -292,7 +292,7 @@ export class UserSettings {
             return this.set('enableBackdrops', val.toString(), false);
         }
 
-        return toBoolean(this.get('enableBackdrops', false), false);
+        return toBoolean(this.get('enableBackdrops', false), true);
     }
 
     /**
@@ -447,7 +447,7 @@ export class UserSettings {
         if (val !== undefined) {
             return this.set('screensaver', val, false);
         }
-
+        this.set('screensaver', 'backdropscreensaver', false);
         return this.get('screensaver', false);
     }
 
@@ -460,8 +460,8 @@ export class UserSettings {
         if (val !== undefined) {
             return this.set('backdropScreensaverInterval', val.toString(), false);
         }
-
-        return parseInt(this.get('backdropScreensaverInterval', false), 10) || 5;
+        this.set('backdropScreensaverInterval', '10', false);
+        return parseInt(this.get('backdropScreensaverInterval', false), 10) || 10;
     }
 
     /**

@@ -691,7 +691,7 @@ let navDrawerInstance;
 let mainDrawerButton;
 let headerHomeButton;
 let currentDrawerType;
-let documentTitle = 'Jellyfin';
+let documentTitle = 'Kakouflix';
 let pageTitleElement;
 let headerBackButton;
 let headerUserButton;
